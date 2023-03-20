@@ -12,5 +12,6 @@
 
 1. 登录其中一个account, 创建cloud9环境，更新 ~/.aws/credentials (添加两个账号的AK/SK)
 2. 更新enhanced_mock.py中的两个account的profile信息
-3. 运行脚本 `python3 enhanced_mock.py`
-4. 检查两个账户中的数据创建情况
+3. 安装相关依赖 `pip3 install -r requirements.txt`
+4. 运行脚本 `python3 enhanced_mock.py`
+5. 检查两个账户中的数据创建情况
