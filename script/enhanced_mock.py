@@ -216,7 +216,7 @@ def create_user2word(num_rows, word_candidates):
             "identifier": hashlib.sha256(
                 bytes(random.randint(0, cand_len*10))
             ).hexdigest(),
-            "query_word" : word_candidates[random.randint(0, cand_len)],
+            "query_word" : word_candidates[random.randint(0, cand_len-1)],
             "query_date": fake.date_this_month(
                 before_today=True, after_today=True
             ),
