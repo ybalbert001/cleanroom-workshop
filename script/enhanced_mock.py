@@ -158,14 +158,14 @@ print(s3_client.create_bucket(Bucket=bucket_name))
 
 wr.catalog.create_database(name=database, exist_ok=True, boto3_session=session)
 
-wr.s3.to_parquet(
-    df=pd.DataFrame(airline_crm(num_rows=airline_crm_num_rows)),
-    path=f"s3://{bucket_name}/{database}/airline_crm",
-    dataset=True,
-    database=database,
-    table="airline_crm",
-    boto3_session=session,
-)
+# wr.s3.to_parquet(
+#     df=pd.DataFrame(airline_crm(num_rows=airline_crm_num_rows)),
+#     path=f"s3://{bucket_name}/{database}/airline_crm",
+#     dataset=True,
+#     database=database,
+#     table="airline_crm",
+#     boto3_session=session,
+# )
 
 wr.s3.to_parquet(
     df=pd.DataFrame(
@@ -195,7 +195,7 @@ wr.s3.to_parquet(
 
 def socialco_impressions(num_rows, users_start, users_stop):
     # users_start, users_stop - sets range for emails, this can be used to determine % overlap with the airline data set
-    return [
+    base_data = [
         {
             "identifier": hashlib.sha256(
                 bytes(random.randint(users_start, users_stop))
@@ -203,11 +203,29 @@ def socialco_impressions(num_rows, users_start, users_stop):
             "impression_date": fake.date_this_month(
                 before_today=True, after_today=True
             ),
-            "campaign_id": "70084346-e68c-4da5-aa37-66a3428996b5",
+            "campaign_id": random.randint(123456, 123466),
             "creative_id": random.randint(123456, 123466),
         }
         for x in range(num_rows)
     ]
+
+    outlier_data = [
+        {
+            "identifier": hashlib.sha256(
+                bytes(random.randint(users_start, users_stop))
+            ).hexdigest(),
+            "impression_date": fake.date_this_month(
+                before_today=True, after_today=True
+            ),
+            "campaign_id": 10000,
+            "creative_id": random.randint(123456, 123466),
+        }
+        for x in range(10)
+    ]
+
+    base_data.extend(outlier_item)
+
+    return base_data
 
 def create_user2word(num_rows, word_candidates):
     cand_len = len(word_candidates)
@@ -255,11 +273,11 @@ wr.s3.to_parquet(
     df=pd.DataFrame(
 		create_user2word(10000, word_list)
     ),
-    path=f"s3://{bucket_name}/{database}/user_search_word",
+    path=f"s3://{bucket_name}/{database}/user_search_log",
     dataset=True,
     partition_cols=["query_date"],
     database=database,
-    table="user_search_word",
+    table="user_search_log",
     boto3_session=session
 )
 
