@@ -115,10 +115,10 @@ def airline_crm(num_rows=1):
 
 def airline_conversions(num_rows, num_users):
     # num_users - number of users the airline has, this enables an overlap with the airline_crm table
-    return [
+    base_data = [
         {
             "identifier": hashlib.sha256(
-                bytes(random.randint(0, num_users))
+                bytes(random.randint(0, num_users)) #5000
             ).hexdigest(),
             "pixel_id": "67d34640-b7a4-42a8-b821-6434d70f08a4",
             "sale_date": fake.date_this_month(before_today=True, after_today=True),
@@ -128,8 +128,28 @@ def airline_conversions(num_rows, num_users):
             "currency": "usd",
             "transaction_id": fake.uuid4(),
         }
-        for x in range(num_rows)
+        for x in range(num_rows) #1000
     ]
+
+    outlier_data = [
+        {
+            "identifier": hashlib.sha256(
+                bytes(random.randint(0, 10))
+            ).hexdigest(),
+            "pixel_id": "67d34640-b7a4-42a8-b821-6434d70f08a4",
+            "sale_date": fake.date_this_month(before_today=True, after_today=True),
+            "event_type": "PURCHASE",
+            "version": "2.0",
+            "price": random.randint(2050, 2100),
+            "currency": "usd",
+            "transaction_id": fake.uuid4(),
+        }
+        for x in range(20)
+    ]
+
+    base_data.extend(outlier_data)
+
+    return base_data
 
 def create_tag2word():
     f = open('./query2people.txt')
@@ -198,7 +218,7 @@ def socialco_impressions(num_rows, users_start, users_stop):
     base_data = [
         {
             "identifier": hashlib.sha256(
-                bytes(random.randint(users_start, users_stop))
+                bytes(random.randint(users_start, users_stop)) # 0 - 10000
             ).hexdigest(),
             "impression_date": fake.date_this_month(
                 before_today=True, after_today=True
@@ -206,13 +226,13 @@ def socialco_impressions(num_rows, users_start, users_stop):
             "campaign_id": random.randint(123456, 123466),
             "creative_id": random.randint(123456, 123466),
         }
-        for x in range(num_rows)
+        for x in range(num_rows) # 100000
     ]
 
     outlier_data = [
         {
             "identifier": hashlib.sha256(
-                bytes(random.randint(users_start, users_stop))
+                bytes(random.randint(0, 10))
             ).hexdigest(),
             "impression_date": fake.date_this_month(
                 before_today=True, after_today=True
@@ -220,7 +240,7 @@ def socialco_impressions(num_rows, users_start, users_stop):
             "campaign_id": 10000,
             "creative_id": random.randint(123456, 123466),
         }
-        for x in range(10)
+        for x in range(20)
     ]
 
     base_data.extend(outlier_data)
