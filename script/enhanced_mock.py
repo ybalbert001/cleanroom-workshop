@@ -223,7 +223,7 @@ def socialco_impressions(num_rows, users_start, users_stop):
         for x in range(10)
     ]
 
-    base_data.extend(outlier_item)
+    base_data.extend(outlier_data)
 
     return base_data
 
