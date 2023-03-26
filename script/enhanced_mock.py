@@ -115,12 +115,12 @@ def airline_crm(num_rows=1):
 
 def airline_conversions(num_rows, num_users):
     # num_users - number of users the airline has, this enables an overlap with the airline_crm table
-    base_data = [
+    user_id_list = [ random.randint(0, num_users) for x in range(num_rows) ] #5000
+    
+    all_data = [
         {
-            "identifier": hashlib.sha256(
-                bytes(random.randint(0, num_users)) #5000
-            ).hexdigest(),
-            "pixel_id": "67d34640-b7a4-42a8-b821-6434d70f08a4",
+            "identifier": hashlib.sha256(bytes(x)).hexdigest(), 
+            "inner_user_id": hashlib.sha256(bytes(x)).hexdigest(),
             "sale_date": fake.date_this_month(before_today=True, after_today=True),
             "event_type": "PURCHASE",
             "version": "2.0",
@@ -128,15 +128,27 @@ def airline_conversions(num_rows, num_users):
             "currency": "usd",
             "transaction_id": fake.uuid4(),
         }
-        for x in range(num_rows) #1000
+        for x in user_id_list #1000
+    ]
+    
+    book_data = [
+        {
+            "identifier": hashlib.sha256(bytes(x)).hexdigest(), 
+            "inner_user_id": hashlib.sha256(bytes(x)).hexdigest(),
+            "sale_date": fake.date_this_month(before_today=True, after_today=True),
+            "event_type": "BOOK",
+            "version": "2.0",
+            "price": None,
+            "currency": "usd",
+            "transaction_id": fake.uuid4(),
+        }
+        for x in user_id_list #1000
     ]
 
     outlier_data = [
         {
-            "identifier": hashlib.sha256(
-                bytes(random.randint(0, 10))
-            ).hexdigest(),
-            "pixel_id": "67d34640-b7a4-42a8-b821-6434d70f08a4",
+            "identifier": hashlib.sha256(bytes(x)).hexdigest(),
+            "inner_user_id": hashlib.sha256(bytes(x)).hexdigest(),
             "sale_date": fake.date_this_month(before_today=True, after_today=True),
             "event_type": "PURCHASE",
             "version": "2.0",
@@ -147,9 +159,10 @@ def airline_conversions(num_rows, num_users):
         for x in range(20)
     ]
 
-    base_data.extend(outlier_data)
+    all_data.extend(book_data)
+    all_data.extend(outlier_data)
 
-    return base_data
+    return all_data
 
 def create_tag2word():
     f = open('./query2people.txt')
@@ -178,14 +191,14 @@ print(s3_client.create_bucket(Bucket=bucket_name))
 
 wr.catalog.create_database(name=database, exist_ok=True, boto3_session=session)
 
-# wr.s3.to_parquet(
-#     df=pd.DataFrame(airline_crm(num_rows=airline_crm_num_rows)),
-#     path=f"s3://{bucket_name}/{database}/airline_crm",
-#     dataset=True,
-#     database=database,
-#     table="airline_crm",
-#     boto3_session=session,
-# )
+wr.s3.to_parquet(
+    df=pd.DataFrame(airline_crm(num_rows=airline_crm_num_rows)),
+    path=f"s3://{bucket_name}/{database}/airline_crm",
+    dataset=True,
+    database=database,
+    table="airline_crm",
+    boto3_session=session,
+)
 
 wr.s3.to_parquet(
     df=pd.DataFrame(
@@ -215,6 +228,8 @@ wr.s3.to_parquet(
 
 def socialco_impressions(num_rows, users_start, users_stop):
     # users_start, users_stop - sets range for emails, this can be used to determine % overlap with the airline data set
+    dup_data = []
+    
     base_data = [
         {
             "identifier": hashlib.sha256(
@@ -228,6 +243,10 @@ def socialco_impressions(num_rows, users_start, users_stop):
         }
         for x in range(num_rows) # 100000
     ]
+    
+    for kv in base_data:
+        kv["impression_date"] = fake.date_this_month(before_today=True, after_today=True)
+        dup_data.append(kv)
 
     outlier_data = [
         {
@@ -244,6 +263,7 @@ def socialco_impressions(num_rows, users_start, users_stop):
     ]
 
     base_data.extend(outlier_data)
+    base_data.extend(dup_data)
 
     return base_data
 
@@ -291,7 +311,7 @@ wr.s3.to_parquet(
 
 wr.s3.to_parquet(
     df=pd.DataFrame(
-		create_user2word(10000, word_list)
+        create_user2word(10000, word_list)
     ),
     path=f"s3://{bucket_name}/{database}/user_search_log",
     dataset=True,
